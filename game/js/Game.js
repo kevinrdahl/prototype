@@ -23,20 +23,48 @@ BasicGame.Game = function (game) {
     //	You can use any of these from any function within this State.
     //	But do consider them as being 'reserved words', i.e. don't create a property for your own game called "world" or you'll over-write the world reference.
 
+    this.playerEntity = null;
+    this.playerController = null;
+    this.entities = [];
+    this.obstacles = [];
+    this.cursors;
+    this.currentFrame = 0;
 };
 
 BasicGame.Game.prototype = {
 
 	create: function () {
+      console.log("CREATE GAME");
 
-		//	Honestly, just about anything could go here. It's YOUR game after all. Eat your heart out!
+      this.cursors = this.input.keyboard.createCursorKeys();
 
+      this.physics.startSystem(Phaser.Physics.ARCADE);
+
+      this.playerController = new PlayerController();
+
+      this.playerEntity = new Entity("player");
+      this.playerEntity.init(this.game);
+      this.playerEntity.controller = this.playerController;
+
+      var entity = new Entity("cloak");
+      entity.init(this.game);
+      entity.sprite.position.x = 200;
+      entity.controller = this.playerController;
+      this.entities.push(entity);
+
+      console.log(this.entities);
 	},
 
 	update: function () {
+      this.currentFrame += 1;
+      //console.log("=== FRAME " + this.currentFrame + " ===");
 
-		//	Honestly, just about anything could go here. It's YOUR game after all. Eat your heart out!
+      this.playerController.update(this);
+      this.playerEntity.update(this);
 
+      for (var i = 0; i < this.entities.length; i++) {
+         this.entities[i].update(this);
+      }
 	},
 
 	quitGame: function (pointer) {
