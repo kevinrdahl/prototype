@@ -1,10 +1,10 @@
 var AnimationSets = {};
 
-AnimationSets.applyToEntity = function(entity, animationSet) {
-   var sprite = entity.sprite;
+AnimationSets.applyToObject = function(obj, animationSet) {
+   var sprite = obj.sprite;
    var animName, animation, dirName, direction, fullName;
 
-   entity.animationSet = animationSet;
+   obj.animationSet = animationSet;
 
    for (animName in animationSet) {
       animation = animationSet[animName];
@@ -16,6 +16,30 @@ AnimationSets.applyToEntity = function(entity, animationSet) {
    }
 }
 
+AnimationSets.setObjectAnimation = function(obj, animation, direction, force) {
+   var animDef = obj.animationSet[animation];
+   if (!animDef || !animDef.directions) return;
+
+   var dirDef = animDef.directions[direction];
+   if (!dirDef) {
+      direction = animDef.defaultDirection;
+      dirDef = animDef.directions[direction];
+      if (!dirDef) return;
+   }
+
+   var animName = animation + "_" + direction;
+
+   if (obj.sprite.animations.currentAnim.name != animName || force) {
+      obj.sprite.animations.play(animName);
+   }
+
+   if (dirDef.flipX) obj.sprite.scale.x = -4;
+   else obj.sprite.scale.x = 4;
+
+   if (dirDef.flipY) obj.sprite.scale.y = -4;
+   else obj.sprite.scale.y = 4;
+}
+
 AnimationSets['up4_side4_down4'] = {
    idle:{
       directions:{
@@ -25,7 +49,7 @@ AnimationSets['up4_side4_down4'] = {
          down:{frames:[8,9]}
       },
       frameRate:2,
-      defaultDirection:"down",
+      defaultDirection:'down',
       loop:true
    },
 
@@ -37,7 +61,19 @@ AnimationSets['up4_side4_down4'] = {
          down:{frames:[8,9,10,11]}
       },
       frameRate:15,
-      defaultDirection:"down",
+      defaultDirection:'down',
       loop:true
    }
+}
+
+//things that just spin
+AnimationSets['rot4'] = {
+	idle:{
+		directions:{
+			down:{frames:[0,1,2,3]}
+		},
+		frameRate:15,
+		defaultDirection:'down',
+		loop:true
+	}
 }

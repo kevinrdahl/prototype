@@ -12,5 +12,8 @@ var PlayerController = Class(Controller, {
       if (gameState.cursors.down.isDown) this.direction.y += 1;
 
       if (this.direction.getMagnitude > 0) this.direction.setMagnitude(1);
+		
+		this.facing = gameState.playerEntity.sprite.position.angle(gameState.mouseWorldPosition);
+		this.useAbilities.primary = gameState.input.activePointer.isDown;
    }
 })

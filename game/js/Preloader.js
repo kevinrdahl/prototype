@@ -36,6 +36,9 @@ BasicGame.Preloader.prototype = {
 		this.load.spritesheet("cloak", "assets/sprites/cloak.png", 16, 16, 12);
 		this.load.spritesheet("feather", "assets/sprites/feather.png", 16, 16, 12);
 		this.load.spritesheet("snake", "assets/sprites/hoodfang.png", 16, 16, 12);
+		
+		//projectiles
+		this.load.spritesheet("boomerang", "assets/sprites/boomerang.png", 16, 16, 4);
 	},
 
 	create: function () {
