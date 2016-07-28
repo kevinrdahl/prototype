@@ -8,7 +8,7 @@ EntityTypes['notlink'] = {
 		secondary:'',
 		movement:''
 	},
-	speed:600,
+	speed:500,
 	acceleration:150,
 	hp:10
 };
@@ -34,7 +34,7 @@ EntityTypes['feather'] = {
 		secondary:'',
 		movement:''
 	},
-	speed:500,
+	speed:600,
 	acceleration:125,
 	hp:10
 };
