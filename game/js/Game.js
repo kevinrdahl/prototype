@@ -51,13 +51,13 @@ BasicGame.Game.prototype = {
       this.playerController = new PlayerController();
 
       this.playerEntity = new Entity("notlink");
-      this.playerEntity.init(this, 50, 50);
+      this.playerEntity.init(50, 50);
       this.playerEntity.controller = this.playerController;
 		this.entities.push(this.playerEntity);
 		this.controllers.push(this.playerController);
 
       var entity = new Entity("cloak");
-      entity.init(this, 250, 250);
+      entity.init(250, 250);
       entity.controller = new Controller(this);
 		this.controllers.push(entity.controller);
       this.entities.push(entity);

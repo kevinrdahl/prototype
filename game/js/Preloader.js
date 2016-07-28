@@ -39,6 +39,10 @@ BasicGame.Preloader.prototype = {
 		
 		//projectiles
 		this.load.spritesheet("boomerang", "assets/sprites/boomerang.png", 16, 16, 4);
+		
+		//health bar
+		this.load.image('gem_green', 'assets/sprites/gem_green.png');
+		this.load.image('gem_grey', 'assets/sprites/gem_grey.png');
 	},
 
 	create: function () {

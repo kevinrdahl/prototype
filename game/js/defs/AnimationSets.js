@@ -77,3 +77,14 @@ AnimationSets['rot4'] = {
 		loop:true
 	}
 }
+
+AnimationSets['none'] = {
+	idle:{
+		directions:{
+			down:{frames:[0]}
+		},
+		frameRate:1,
+		defaultDirection:'down',
+		loop:false
+	}
+}

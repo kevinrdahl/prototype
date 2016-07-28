@@ -1,6 +1,8 @@
 var Entity = Class({
 	constructor: function(type) {
 	   this.type = type;
+		
+		this.group = null;
 	   this.sprite = null;
 	   this.controller = null;
 	   this.speed = 400;
@@ -8,51 +10,24 @@ var Entity = Class({
 	   this.direction = 'down';
 	   this.animationSet = null;
 		this.hp = 5;
+		this.maxHp = 5;
 		this.abilities = {
 			primary:null,
 			secondary:null,
 			movement:null
 		};
+		
+		this.healthBar = new HealthBar(5,5);
 	},
 	
-	init: function(gameState, x, y) {
-		var game = gameState.game;
+	init: function(x, y) {
+		this.group = gameState.game.add.group();
+		this.group.x = x;
+		this.group.y = y;
 		
-	   /*if (this.type == "player") {
-	      this.sprite = game.add.sprite(50, 50, 'notlink');
-	      AnimationSets.applyToObject(this, AnimationSets['up4_side4_down4']);
-	   } else if (this.type == "cloak") {
-	      this.sprite = game.add.sprite(50, 50, 'cloak');
-	      AnimationSets.applyToObject(this, AnimationSets['up4_side4_down4']);
-	   } else if (this.type == "feather") {
-	      this.sprite = game.add.sprite(50, 50, 'feather');
-	      AnimationSets.applyToObject(this, AnimationSets['up4_side4_down4']);
-	   } else if (this.type == "snake") {
-	      this.sprite = game.add.sprite(50, 50, 'snake');
-	      AnimationSets.applyToObject(this, AnimationSets['up4_side4_down4']);
-	   }*/
-		
-		var typeDef = EntityTypes[this.type];
-		if (!typeDef) {
-			console.error("no Entity type '" + this.type + "'");
-			return;
-		}
-		
-		this.sprite = game.add.sprite(x, y, typeDef.sprite);
-		AnimationSets.applyToObject(this, AnimationSets[typeDef.animationSet]);
-      this.setAnimation('idle', 'down');
-      this.sprite.scale.set(4);
-      this.sprite.smoothed = false;
-      this.sprite.anchor.set(0.5,0.5);
-		
-		for (var type in typeDef.abilities) {
-			var abilityType = Abilities[typeDef.abilities[type]];
-			if (abilityType) {
-				this.abilities[type] = new abilityType(this);
-			}
-		}
-
-      game.physics.enable(this.sprite, Phaser.Physics.ARCADE);
+		this.setType(this.type);
+		this.sprite.position.set(x,y);
+		this.healthBar.init(this);
 	},
 	
 	updateMovement: function() {
@@ -100,5 +75,38 @@ var Entity = Class({
 	   else direction = this.direction;
 	
 	   AnimationSets.setObjectAnimation(this, animation, direction);
+	},
+	
+	setType: function(type) {
+		var x = 0;
+		var y = 0;
+		
+		if (this.sprite) {
+			x = this.sprite.position.x;
+			y = this.sprite.position.y;
+			this.sprite.destroy();
+		}
+		
+		var typeDef = EntityTypes[this.type];
+		if (!typeDef) {
+			console.error("no Entity type '" + this.type + "'");
+			return;
+		}
+		
+		this.sprite = gameState.game.add.sprite(x, y, typeDef.sprite);
+		AnimationSets.applyToObject(this, AnimationSets[typeDef.animationSet]);
+      this.setAnimation('idle', 'down');
+      this.sprite.scale.set(4);
+      this.sprite.smoothed = false;
+      this.sprite.anchor.set(0.5,0.5);
+		
+		for (var type in typeDef.abilities) {
+			var abilityType = Abilities[typeDef.abilities[type]];
+			if (abilityType) {
+				this.abilities[type] = new abilityType(this);
+			}
+		}
+
+      gameState.physics.enable(this.sprite, Phaser.Physics.ARCADE);
 	}
 });
