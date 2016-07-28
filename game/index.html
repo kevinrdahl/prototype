@@ -8,12 +8,13 @@
 	<link href='https://fonts.googleapis.com/css?family=Concert+One' rel='stylesheet' type='text/css'>
 
 	<!-- SHIMS -->
-	<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/es5-shim/4.5.9/es5-shim.min.js"></script>
-	<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/es6-shim/0.35.1/es6-shim.min.js"></script>
+	<!--<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/es5-shim/4.5.9/es5-shim.min.js"></script>
+	<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/es6-shim/0.35.1/es6-shim.min.js"></script>-->
 	<script src="https://cdn.jsdelivr.net/jsface/2.4.9/jsface.min.js"></script>
 
 	<!-- LIB -->
 	<script src="js/lib/phaser.min.js"></script>
+	<script src="js/lib/GlowFilter.js"></script>
 
 	<!-- GAME -->
 	<script src="js/Boot.js"></script>
@@ -25,7 +26,7 @@
 	<script src="js/defs/Abilities.js"></script>
 	<script src="js/defs/Projectiles.js"></script>
 	<script src="js/defs/EntityTypes.js"></script>
-	
+
 	<!-- CLASSES -->
 	<script src="js/HealthBar.js"></script>
 	<script src="js/Entity.js"></script>
@@ -58,7 +59,6 @@ window.onload = function() {
 
 	//	Now start the Boot state.
 	game.state.start('Boot');
-
 };
 
 </script>

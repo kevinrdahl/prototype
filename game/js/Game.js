@@ -34,17 +34,29 @@ BasicGame.Game = function (game) {
 	 this.updateTimeDelta = 0;
 	 this.mousePosition = new Phaser.Point(0,0);
 	 this.mouseWorldPosition = new Phaser.Point(0,0);
+
+    this.filters = {};
 };
 
 BasicGame.Game.prototype = {
 
 	create: function () {
       console.log("CREATE GAME");
+      this.game.canvas.oncontextmenu = function (e) { e.preventDefault(); return false; }
+
 		window.gameState = this;
-		
+
 		this.world.setBounds(-2000, -2000, 4000, 4000);
 
       this.cursors = this.input.keyboard.createCursorKeys();
+      this.wasd = {
+         up: this.game.input.keyboard.addKey(Phaser.Keyboard.W),
+         down: this.game.input.keyboard.addKey(Phaser.Keyboard.S),
+         left: this.game.input.keyboard.addKey(Phaser.Keyboard.A),
+         right: this.game.input.keyboard.addKey(Phaser.Keyboard.D),
+      };
+
+      this.filters['Glow'] = this.game.add.filter('Glow');
 
       this.physics.startSystem(Phaser.Physics.ARCADE);
 
@@ -56,12 +68,14 @@ BasicGame.Game.prototype = {
 		this.entities.push(this.playerEntity);
 		this.controllers.push(this.playerController);
 
-      var entity = new Entity("cloak");
-      entity.init(250, 250);
-      entity.controller = new Controller(this);
-		this.controllers.push(entity.controller);
-      this.entities.push(entity);
-		
+      for (var i = 0; i < 5; i++) {
+         var entity = new Entity("cloak");
+         entity.init(250, 50 + i*100);
+         entity.controller = new Controller();
+   		this.controllers.push(entity.controller);
+         this.entities.push(entity);
+      }
+
 		this.camera.follow(this.playerEntity.sprite, Phaser.Camera.FOLLOW_LOCKON, 0.1, 0.1);
 	},
 
@@ -69,31 +83,63 @@ BasicGame.Game.prototype = {
       var currentTime = Date.now();
 		this.updateTimeDelta = currentTime - this.currentTime;
 		this.currentTime = currentTime;
-		
+
 		this.mousePosition.set(this.input.mousePointer.x, this.input.mousePointer.y);
 		this.mouseWorldPosition.set(this.mousePosition.x + this.camera.position.x, this.mousePosition.y + this.camera.position.y);
-		
+
 		this.updateControllers();
 		this.updateMovement();
-		this.updateProjectiles();
 		this.updateActions();
 		this.doCollisions();
+      this.removeDead();
 	},
-	
+
 	updateControllers: function() {
-		for (var i = 0; i < this.controllers.lengthl; i++) {
+		for (var i = 0; i < this.controllers.length; i++) {
 			this.controllers[i].update(this);
 		}
 	},
-	
+
 	updateMovement: function() {
 		for (var i = 0; i < this.entities.length; i++) {
          this.entities[i].updateMovement(this);
       }
+
+      for (var i = 0; i < this.projectiles.length; i++) {
+         this.projectiles[i].update();
+      }
 	},
-	
-	updateProjectiles: function() {
-		var projectile;
+
+	updateActions: function() {
+		for (var i = this.entities.length-1; i >= 0; i--) {
+         this.entities[i].updateActions(this);
+      }
+	},
+
+	doCollisions: function() {
+		//entities with entities
+		for (var i = this.entities.length-1; i >= 0; i--) {
+			for (var j = i-1; j >= 0; j--) {
+				if (this.game.physics.arcade.collide(this.entities[i].sprite, this.entities[j].sprite)) {
+					this.onEntityEntityCollision(this.entities[i], this.entities[j]);
+				}
+			}
+		}
+
+		//entities with projectiles
+		for (var i = this.entities.length-1; i >= 0; i--) {
+			for (var j = this.projectiles.length-1; j >= 0; j--) {
+				if (this.projectiles[j].sourceEntity == this.entities[i]) continue;
+
+				if (this.game.physics.arcade.collide(this.entities[i].sprite, this.projectiles[j].sprite)) {
+					this.onEntityProjectileCollision(this.entities[i], this.projectiles[j]);
+				}
+			}
+		}
+	},
+
+   removeDead: function() {
+      var projectile;
 		for (var i = this.projectiles.length-1; i >= 0; i--) {
 			projectile = this.projectiles[i];
 			projectile.update(this);
@@ -102,50 +148,55 @@ BasicGame.Game.prototype = {
 				projectile.sprite.destroy();
 			}
 		}
-	},
-	
-	updateActions: function() {
-		for (var i = 0; i < this.entities.length; i++) {
-         this.entities[i].updateActions(this);
-      }
-	},
-	
-	doCollisions: function() {
-		//entities with entities
-		for (var i = 0; i < this.entities.length; i++) {
-			for (var j = i+1; j < this.entities.length; j++) {
-				if (this.game.physics.arcade.collide(this.entities[i].sprite, this.entities[j].sprite)) {
-					this.onEntityEntityCollision(this.entities[i], this.entities[j]);
-				}
+
+      var entity;
+		for (var i = this.entities.length-1; i >= 0; i--) {
+			entity = this.entities[i];
+			if (entity.remove) {
+				this.removeEntity(entity, i);
 			}
 		}
-		
-		//entities with projectiles
-		for (var i = 0; i < this.entities.length; i++) {
-			for (var j = 0; j < this.projectiles.length; j++) {
-				if (this.projectiles[j].sourceEntity == this.entities[i]) continue;
-				
-				if (this.game.physics.arcade.collide(this.entities[i].sprite, this.projectiles[j].sprite)) {
-					this.onEntityProjectileCollision(this.entities[i], this.projectiles[j]);
-					this.projectiles[j].remove = true;
-				}
-			}
-		}
-	},
-	
+   },
+
 	onEntityEntityCollision: function(entity1, entity2) {
-		
+
 	},
-	
+
 	onEntityProjectileCollision: function(entity, projectile) {
-		
+      projectile.onCollide(entity);
 	},
-	
+
 	addProjectile: function(projectile, x, y, facing, sourceEntity) {
 		projectile.init(this, x, y, facing, sourceEntity.sprite.body.velocity);
 		projectile.sourceEntity = sourceEntity;
 		this.projectiles.push(projectile);
 	},
+
+   killEntity: function(entity, killingEntity) {
+      var deathSprite = this.game.add.sprite(entity.sprite.position.x, entity.sprite.position.y, entity.sprite.key, entity.sprite.frame);
+      deathSprite.scale.copyFrom(entity.sprite.scale);
+      deathSprite.anchor.copyFrom(entity.sprite.anchor);
+
+      deathSprite.filters = [this.filters['Glow'], this.filters['Glow']];
+
+      var tween = this.game.add.tween(deathSprite).to({alpha:0}, 1000, "Quart.easeOut");
+      tween.onComplete.add(function() {
+         console.log("DESTROY");
+         deathSprite.destroy();
+      });
+      tween.start();
+
+      entity.remove = true;
+   },
+
+   removeEntity: function(entity, index) {
+      index = (typeof index !== 'undefined') ? index : this.entities.indexOf(entity);
+      
+      entity.sprite.destroy();
+      entity.group.destroy();
+      if (entity.controller) this.controllers.splice(this.controllers.indexOf(entity.controller),1);
+      this.entities.splice(index, 1);
+   },
 
 	quitGame: function (pointer) {
 

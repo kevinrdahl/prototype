@@ -2,35 +2,44 @@ var HealthBar = Class({
 	constructor: function() {
 		this.group = new Phaser.Group(gameState.game);
 		this.icons = [];
-		this.maxValue = 1;
-		this.value = 1;
 		this.entity = null;
 	},
-	
+
 	init: function(entity) {
 		this.entity = entity;
-		this.value = entity.hp;
-		this.maxValue = entity.maxHp;
-		
-		//TODO: entities need to have a group
+		entity.group.addChild(this.group);
+		this.update();
 	},
-	
-	setIcons: function() {
+
+	update: function() {
 		var icon;
-		
+		var value = this.entity.hp;
+		var maxValue = this.entity.maxHp;
+
+		//if for some reason there are too many, remove
+		while(this.icons.length > maxValue) {
+			icon = this.icons.pop();
+			icon.destroy();
+		}
+
 		//Make em if they aren't there
-		while(this.icons.length < this.maxValue) {
+		while(this.icons.length < maxValue) {
 			icon = this.group.create(0,0,'gem_grey');
-			icon.scale.set(4);
+			//icon.scale.set(2);
 			icon.smoothed = false;
 			this.icons.push(icon);
 		}
-		
+
+		var startX = (this.icons[0].width * maxValue) / -2;
+		var y = this.entity.sprite.height/2 + 5;
+
+		//TODO: rows
 		for (var i = 0; i < this.icons.length; i++) {
-			icon = icons[i];
-			icon.position.x = icon.width*i;
-			
-			if (this.value > i) {
+			icon = this.icons[i];
+			icon.position.x = startX + icon.width*i;
+			icon.position.y = y;
+
+			if (value > i) {
 				icon.loadTexture('gem_green');
 			} else {
 				icon.loadTexture('gem_grey');
