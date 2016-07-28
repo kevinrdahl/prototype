@@ -58,7 +58,7 @@ BasicGame.Game.prototype = {
          right: this.game.input.keyboard.addKey(Phaser.Keyboard.D),
       };
 
-      this.filters['Glow'] = new GlowFilter(10,10,1,0.8,0.8,0xffffff,0.1);
+      this.filters['Glow'] = new GlowFilter(10,10,1,1,1,0xffffff,0.1);
 		this.filters['PlayerGlow'] = new GlowFilter(10,10,1,0,0,0xffffff,0.1);
 
       this.physics.startSystem(Phaser.Physics.ARCADE);
@@ -70,10 +70,11 @@ BasicGame.Game.prototype = {
 		this.entities.push(this.playerEntity);
 		this.controllers.push(this.playerController);
 		this.playerEntity.sprite.filters = [this.filters['PlayerGlow']];
+		this.playerEntity.sprite.tint = 0xff8888;
 
       for (var i = 0; i < 5; i++) {
          var entity = new Entity("cloak");
-         entity.init(500, 50 + i*150);
+         entity.init(800, 50 + i*150);
          entity.controller = new SimpleEnemyController(entity);
    		this.controllers.push(entity.controller);
          this.entities.push(entity);
@@ -219,14 +220,16 @@ BasicGame.Game.prototype = {
 		var index = Math.floor(Math.random() * this.enemiesKilledThisFrame.length);
 		var entity = this.enemiesKilledThisFrame[index];
 		
-		console.log("Change to " + entity.type);
-		
-		this.playerEntity.setType(entity.type);
-		
-		var filter = this.filters['PlayerGlow'];
-		filter.uniforms.innerStrength.value = 1;
-		var tween = this.game.add.tween(filter.uniforms.innerStrength).to({value:0}, 1000, "Quart.easeOut");
-		tween.start();
+		if (this.playerEntity.type != entity.type) {
+			console.log("Change to " + entity.type);
+			
+			this.playerEntity.setType(entity.type);
+			
+			var filter = this.filters['PlayerGlow'];
+			filter.uniforms.innerStrength.value = 1;
+			var tween = this.game.add.tween(filter.uniforms.innerStrength).to({value:0}, 1000, "Quart.easeOut");
+			tween.start();
+		}
 	},
 
 	quitGame: function (pointer) {
