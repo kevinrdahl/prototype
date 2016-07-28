@@ -102,3 +102,12 @@ Projectiles.Arrow = Class(RotatedProjectile, {
 		Projectiles.Arrow.$super.call(this, 'arrow', speed, effect, maxDistance. maxLifetime);
 	}
 })
+
+////////////////////////////////////////
+// Key
+////////////////////////////////////////
+Projectiles.Key = Class(RotatedProjectile, {
+	constructor: function(speed, effect, maxDistance, maxLifetime) {
+		Projectiles.Arrow.$super.call(this, 'key', speed, effect, maxDistance. maxLifetime);
+	}
+})

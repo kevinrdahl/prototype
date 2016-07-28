@@ -8,9 +8,9 @@ EntityTypes['notlink'] = {
 		secondary:'',
 		movement:''
 	},
-	speed:1000,
-	acceleration:300,
-	hp:5
+	speed:600,
+	acceleration:150,
+	hp:10
 };
 
 EntityTypes['cloak'] = {
@@ -23,5 +23,18 @@ EntityTypes['cloak'] = {
 	},
 	speed:400,
 	acceleration:100,
-	hp:5
+	hp:10
+};
+
+EntityTypes['feather'] = {
+	sprite:'feather',
+	animationSet:'up4_side4_down4',
+	abilities:{
+		primary:'fireKey',
+		secondary:'',
+		movement:''
+	},
+	speed:500,
+	acceleration:125,
+	hp:10
 };

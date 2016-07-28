@@ -72,8 +72,12 @@ BasicGame.Game.prototype = {
 		this.playerEntity.sprite.filters = [this.filters['PlayerGlow']];
 		this.playerEntity.sprite.tint = 0xff8888;
 
-      for (var i = 0; i < 5; i++) {
-         var entity = new Entity("cloak");
+		////////////////////////////////////////
+		// SPAWN ENEMIES
+		////////////////////////////////////////
+		var enemyTypes = ['notlink', 'cloak', 'feather'];
+      for (var i = 0; i < 6; i++) {
+         var entity = new Entity(Utils.pickRandom(enemyTypes));
          entity.init(800, 50 + i*150);
          entity.controller = new SimpleEnemyController(entity);
    		this.controllers.push(entity.controller);

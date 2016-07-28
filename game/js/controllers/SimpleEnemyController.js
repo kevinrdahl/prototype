@@ -9,8 +9,8 @@ var SimpleEnemyController = Class(Controller, {
 		this.aggroDropDistance = 750;
 		this.aggroTarget = null;
 		
-		this.fireInterval = 1500;
-		this.fireIntervalVariance = 500;
+		this.fireInterval = entity.abilities.primary.cooldown * 1.5;
+		this.fireIntervalVariance = this.fireInterval/3;
 		this.fireCooldown = 0;
 	},
 	

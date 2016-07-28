@@ -36,6 +36,7 @@ var Entity = Class({
 
 	   var body = this.sprite.body;
 
+		//ASSUMED TO BE A UNIT VECTOR
 	   var acceleration = this.controller.direction.clone();
 	   acceleration.multiply(this.acceleration, this.acceleration);
 
