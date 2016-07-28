@@ -7,6 +7,8 @@ Ability = Class({
 		
 		this.currentCooldown = 0;
 		this.active = false;
+		
+		this.aiAttackRange = 500;
 	},
 	
 	update: function() {
@@ -41,6 +43,7 @@ Abilities.boomerang = Class(Ability, {
 Abilities.arrow = Class(Ability, {
 	constructor: function(entity) {
 		Abilities.arrow.$super.call(this, entity, 750);
+		this.aiAttackRange = 650;
 	},
 	
 	doEffect: function() {
@@ -52,6 +55,7 @@ Abilities.arrow = Class(Ability, {
 Abilities.fireKey = Class(Ability, {
 	constructor: function(entity) {
 		Abilities.arrow.$super.call(this, entity, 300);
+		this.aiAttackRange = 300;
 	},
 	
 	doEffect: function() {

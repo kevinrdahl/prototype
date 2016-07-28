@@ -2,9 +2,9 @@ var SimpleEnemyController = Class(Controller, {
 	constructor: function(entity) {
 		SimpleEnemyController.$super.call(this, entity);
 		
-		this.fireRange = 500;
-		this.followDistance = 450;
-		this.runAwayDistance = 200;
+		this.fireRange = entity.abilities.primary.aiAttackRange;
+		this.followDistance = this.fireRange - 100;
+		this.runAwayDistance = this.followDistance/3;
 		this.aggroDistance = 500;
 		this.aggroDropDistance = 750;
 		this.aggroTarget = null;

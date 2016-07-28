@@ -38,3 +38,8 @@ EntityTypes['feather'] = {
 	acceleration:125,
 	hp:10
 };
+
+entityTypes = [];
+for (var type in EntityTypes) {
+	entityTypes.push(type);
+}

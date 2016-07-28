@@ -63,7 +63,7 @@ BasicGame.Game.prototype = {
 
       this.physics.startSystem(Phaser.Physics.ARCADE);
 
-      this.playerEntity = new Entity("notlink");
+      this.playerEntity = new Entity(Utils.pickRandom(entityTypes));
       this.playerEntity.init(50, 50);
 		this.playerController = new PlayerController(this.playerEntity);
       this.playerEntity.controller = this.playerController;
@@ -75,9 +75,8 @@ BasicGame.Game.prototype = {
 		////////////////////////////////////////
 		// SPAWN ENEMIES
 		////////////////////////////////////////
-		var enemyTypes = ['notlink', 'cloak', 'feather'];
       for (var i = 0; i < 6; i++) {
-         var entity = new Entity(Utils.pickRandom(enemyTypes));
+         var entity = new Entity(Utils.pickRandom(entityTypes));
          entity.init(800, 50 + i*150);
          entity.controller = new SimpleEnemyController(entity);
    		this.controllers.push(entity.controller);
