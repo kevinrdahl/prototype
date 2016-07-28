@@ -1,5 +1,8 @@
 var Projectiles = {};
 
+////////////////////////////////////////
+// Projectile
+////////////////////////////////////////
 var Projectile = Class({
 	constructor: function(spriteName, animationSetName, speed, effect, maxDistance, maxLifetime) {
 		this.spriteName = spriteName;
@@ -18,7 +21,7 @@ var Projectile = Class({
 		this.remove = false;
 	},
 
-	init: function(gameState, x, y, direction, initialVelocity) {
+	init: function(x, y, direction, initialVelocity) {
 		this.sprite = gameState.add.sprite(x, y, this.spriteName);
 		if (this.animationSetName) {
 			AnimationSets.applyToObject(this, AnimationSets[this.animationSetName]);
@@ -55,9 +58,47 @@ var Projectile = Class({
 	}
 });
 
+////////////////////////////////////////
+// RotatedProjectile
+////////////////////////////////////////
+RotatedProjectile = Class(Projectile, {
+	constructor: function(spriteName, speed, effect, maxDistance, maxLifetime) {
+		RotatedProjectile.$super.call(this, spriteName, 'none', speed, effect, maxDistance, maxLifetime);
+		//this.rounding = 1;
+	},
+	
+	init: function(x, y, direction, initialVelocity) {
+		RotatedProjectile.$superp.init.call(this, x, y, direction, initialVelocity);
+		this.rotate();
+	},
+	
+	update: function() {
+		RotatedProjectile.$superp.update.call(this);
+		this.rotate();
+	},
+	
+	rotate: function() {
+		//face the right way!
+		var zero = new Phaser.Point(0,0);
+		var facing = zero.angle(this.sprite.body.velocity);
+		this.sprite.rotation = facing;
+	}
+})
 
-/*Projectiles.Boomerang = Class(Projectile, {
-	constructor: function()
-});*/
+////////////////////////////////////////
+// Boomerang
+////////////////////////////////////////
+Projectiles.Boomerang = Class(Projectile, {
+	constructor: function(speed, effect, maxDistance, maxLifetime) {
+		Projectiles.Boomerang.$super.call(this, 'boomerang', 'rot4', speed, effect, maxDistance, maxLifetime);
+	}
+});
 
-//Projectiles['boomerang'] = new Projectiles.Projectile('boomerang', 500, {type:'damage', amount:1});
+////////////////////////////////////////
+// Arrow
+////////////////////////////////////////
+Projectiles.Arrow = Class(RotatedProjectile, {
+	constructor: function(speed, effect, maxDistance, maxLifetime) {
+		Projectiles.Arrow.$super.call(this, 'arrow', speed, effect, maxDistance. maxLifetime);
+	}
+})

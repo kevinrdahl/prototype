@@ -1,9 +1,9 @@
 var PlayerController = Class(Controller, {
-   constructor: function() {
-      PlayerController.$super.call(this);
+   constructor: function(entity) {
+      PlayerController.$super.call(this, entity);
    },
 
-   update: function(gameState) {
+   update: function() {
       this.direction.set(0,0);
 
       if (gameState.cursors.left.isDown || gameState.wasd.left.isDown) this.direction.x -= 1;
@@ -13,7 +13,9 @@ var PlayerController = Class(Controller, {
 
       if (this.direction.getMagnitude > 0) this.direction.setMagnitude(1);
 
-		this.facing = gameState.playerEntity.sprite.position.angle(gameState.mouseWorldPosition);
-		this.useAbilities.primary = gameState.input.activePointer.isDown;
+		this.facing = this.entity.sprite.position.angle(gameState.mouseWorldPosition);
+		this.useAbilities.primary = gameState.input.activePointer.leftButton.isDown;
+		this.useAbilities.secondary = gameState.input.activePointer.rightButton.isDown;
+		this.useAbilities.movement = gameState.input.keyboard.isDown(Phaser.Keyboard.SPACE);
    }
 })

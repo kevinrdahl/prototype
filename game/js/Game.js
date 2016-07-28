@@ -34,6 +34,8 @@ BasicGame.Game = function (game) {
 	 this.updateTimeDelta = 0;
 	 this.mousePosition = new Phaser.Point(0,0);
 	 this.mouseWorldPosition = new Phaser.Point(0,0);
+	 
+	 this.enemiesKilledThisFrame = [];
 
     this.filters = {};
 };
@@ -56,22 +58,23 @@ BasicGame.Game.prototype = {
          right: this.game.input.keyboard.addKey(Phaser.Keyboard.D),
       };
 
-      this.filters['Glow'] = this.game.add.filter('Glow');
+      this.filters['Glow'] = new GlowFilter(10,10,1,0.8,0.8,0xffffff,0.1);
+		this.filters['PlayerGlow'] = new GlowFilter(10,10,1,0,0,0xffffff,0.1);
 
       this.physics.startSystem(Phaser.Physics.ARCADE);
 
-      this.playerController = new PlayerController();
-
       this.playerEntity = new Entity("notlink");
       this.playerEntity.init(50, 50);
+		this.playerController = new PlayerController(this.playerEntity);
       this.playerEntity.controller = this.playerController;
 		this.entities.push(this.playerEntity);
 		this.controllers.push(this.playerController);
+		this.playerEntity.sprite.filters = [this.filters['PlayerGlow']];
 
       for (var i = 0; i < 5; i++) {
          var entity = new Entity("cloak");
-         entity.init(250, 50 + i*100);
-         entity.controller = new Controller();
+         entity.init(500, 50 + i*150);
+         entity.controller = new SimpleEnemyController(entity);
    		this.controllers.push(entity.controller);
          this.entities.push(entity);
       }
@@ -86,12 +89,15 @@ BasicGame.Game.prototype = {
 
 		this.mousePosition.set(this.input.mousePointer.x, this.input.mousePointer.y);
 		this.mouseWorldPosition.set(this.mousePosition.x + this.camera.position.x, this.mousePosition.y + this.camera.position.y);
+		
+		this.enemiesKilledThisFrame.splice(0, this.enemiesKilledThisFrame.length);
 
 		this.updateControllers();
 		this.updateMovement();
 		this.updateActions();
 		this.doCollisions();
       this.removeDead();
+		this.checkChangePlayerType();
 	},
 
 	updateControllers: function() {
@@ -167,7 +173,7 @@ BasicGame.Game.prototype = {
 	},
 
 	addProjectile: function(projectile, x, y, facing, sourceEntity) {
-		projectile.init(this, x, y, facing, sourceEntity.sprite.body.velocity);
+		projectile.init(x, y, facing, sourceEntity.sprite.body.velocity);
 		projectile.sourceEntity = sourceEntity;
 		this.projectiles.push(projectile);
 	},
@@ -177,16 +183,24 @@ BasicGame.Game.prototype = {
       deathSprite.scale.copyFrom(entity.sprite.scale);
       deathSprite.anchor.copyFrom(entity.sprite.anchor);
 
-      deathSprite.filters = [this.filters['Glow'], this.filters['Glow']];
+      deathSprite.filters = [this.filters['Glow']];
 
       var tween = this.game.add.tween(deathSprite).to({alpha:0}, 1000, "Quart.easeOut");
       tween.onComplete.add(function() {
-         console.log("DESTROY");
          deathSprite.destroy();
       });
       tween.start();
 
       entity.remove = true;
+		entity.alive = false;
+		
+		if (killingEntity == this.playerEntity && killingEntity.alive) {
+			this.enemiesKilledThisFrame.push(entity);
+		}
+		
+		if (entity == this.playerEntity) {
+			this.camera.unfollow();
+		}
    },
 
    removeEntity: function(entity, index) {
@@ -197,6 +211,23 @@ BasicGame.Game.prototype = {
       if (entity.controller) this.controllers.splice(this.controllers.indexOf(entity.controller),1);
       this.entities.splice(index, 1);
    },
+	
+	checkChangePlayerType: function() {
+		if (this.enemiesKilledThisFrame.length == 0) return;
+		
+		//pick a random killed entity
+		var index = Math.floor(Math.random() * this.enemiesKilledThisFrame.length);
+		var entity = this.enemiesKilledThisFrame[index];
+		
+		console.log("Change to " + entity.type);
+		
+		this.playerEntity.setType(entity.type);
+		
+		var filter = this.filters['PlayerGlow'];
+		filter.uniforms.innerStrength.value = 1;
+		var tween = this.game.add.tween(filter.uniforms.innerStrength).to({value:0}, 1000, "Quart.easeOut");
+		tween.start();
+	},
 
 	quitGame: function (pointer) {
 

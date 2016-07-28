@@ -8,8 +8,8 @@ EntityTypes['notlink'] = {
 		secondary:'',
 		movement:''
 	},
-	speed:400,
-	acceleration:100,
+	speed:1000,
+	acceleration:300,
 	hp:5
 };
 
@@ -17,7 +17,7 @@ EntityTypes['cloak'] = {
 	sprite:'cloak',
 	animationSet:'up4_side4_down4',
 	abilities:{
-		primary:'',
+		primary:'arrow',
 		secondary:'',
 		movement:''
 	},

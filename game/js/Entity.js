@@ -11,6 +11,7 @@ var Entity = Class({
 	   this.animationSet = null;
 		this.hp = -1;
 		this.maxHp = -1;
+		this.alive = true;
 		this.abilities = {
 			primary:null,
 			secondary:null,
@@ -86,19 +87,27 @@ var Entity = Class({
 	},
 
 	setType: function(type) {
-		var typeDef = EntityTypes[this.type];
+		var typeDef = EntityTypes[type];
+		var setAnim = false;
 		if (!typeDef) {
 			console.error("no Entity type '" + this.type + "'");
 			return;
 		}
+		
+		this.type = type;
 
       this.maxHp = typeDef.hp;
       if (this.hp == -1) this.hp = typeDef.hp;
 
       if (this.sprite) {
+			var anim = this.sprite.animations.currentAnim.name;
+			var frame = this.sprite.animations.currentFrame.index;
 			this.sprite.loadTexture(typeDef.sprite);
-         this.sprite.body.setSize(this.sprite.width, this.sprite.height);
+			this.sprite.animations.play(anim);
+			//this.sprite.animations.currentAnim.frame = frame;
+         //this.sprite.body.setSize(this.sprite.width, this.sprite.height);
 		} else {
+			setAnim = true;
          this.sprite = gameState.game.add.sprite(0,0,typeDef.sprite);
          this.sprite.scale.set(4);
          this.sprite.smoothed = false;
@@ -107,7 +116,7 @@ var Entity = Class({
       }
 
       AnimationSets.applyToObject(this, AnimationSets[typeDef.animationSet]);
-      this.setAnimation('idle', 'down', true);
+      if (setAnim) this.setAnimation('idle', 'down', true);
 
 		for (var type in typeDef.abilities) {
 			var abilityType = Abilities[typeDef.abilities[type]];
