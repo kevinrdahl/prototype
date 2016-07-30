@@ -29,6 +29,7 @@ BasicGame.Game = function (game) {
     this.entities = [];
     this.obstacles = [];
 	 this.projectiles = [];
+	 this.obstaceGroup = null;
     this.cursors;
     this.currentTime = Date.now();
 	 this.updateTimeDelta = 0;
@@ -45,12 +46,15 @@ BasicGame.Game.prototype = {
 	create: function () {
       console.log("CREATE GAME");
       this.game.canvas.oncontextmenu = function (e) { e.preventDefault(); return false; }
-
 		window.gameState = this;
 
 		this.world.setBounds(-2000, -2000, 4000, 4000);
+		this.physics.startSystem(Phaser.Physics.ARCADE);
 
-      this.cursors = this.input.keyboard.createCursorKeys();
+		////////////////////////////////////////
+		// INPUT
+		////////////////////////////////////////
+		this.cursors = this.input.keyboard.createCursorKeys();
       this.wasd = {
          up: this.game.input.keyboard.addKey(Phaser.Keyboard.W),
          down: this.game.input.keyboard.addKey(Phaser.Keyboard.S),
@@ -58,26 +62,86 @@ BasicGame.Game.prototype = {
          right: this.game.input.keyboard.addKey(Phaser.Keyboard.D),
       };
 
+		////////////////////////////////////////
+		// FILTERS
+		////////////////////////////////////////
       this.filters['Glow'] = new GlowFilter(10,10,1,1,1,0xffffff,0.1);
 		this.filters['PlayerGlow'] = new GlowFilter(10,10,1,0,0,0xffffff,0.1);
-
-      this.physics.startSystem(Phaser.Physics.ARCADE);
-
+		
+		////////////////////////////////////////
+		// EMITTERS
+		////////////////////////////////////////
+		this.bombEmitter = this.game.add.emitter(0,0);
+		this.bombEmitter.makeParticles('gem_red');
+		this.bombEmitter.gravity = 0;
+		this.bombEmitter.minParticleAlpha = 0.5;
+		this.bombEmitter.maxParticleAlpha = 1;
+		this.bombEmitter.minParticleSpeed = new Phaser.Point(-300, -300);
+		this.bombEmitter.maxParticleSpeed = new Phaser.Point(300, 300);
+		console.log(this.bombEmitter);
+		
+		////////////////////////////////////////
+		// WORLD (for now just some obstacles)
+		////////////////////////////////////////
+		var width = 30;
+		var height = 30;
+		var obstacleWidth = 64;
+		
+		this.pathing = [];
+		for (var x = 0; x < width; x++) {
+			this.pathing.push([]);
+			for (var y = 0; y < height; y++) {
+				this.pathing[x].push(0);
+			}
+		}
+		
+		var obstacle;
+		
+		//SQUARE
+		for (var i = 0; i < height; i++) {
+			if (i == 0 || i == height-1) {
+				for (var j = 0; j < width; j++) {
+					this.addObstacle(j,i);
+				}
+			} else {
+				this.addObstacle(0,i);
+				this.addObstacle(width-1,i);
+			}
+		}
+		
+		//random
+		var point;
+		for (var i = 0; i < 20; i++) {
+			point = this.getOpenSpace();
+			this.addObstacle(point.x, point.y);
+		}
+		
+		////////////////////////////////////////
+		// PLAYER
+		////////////////////////////////////////
       this.playerEntity = new Entity(Utils.pickRandom(entityTypes));
-      this.playerEntity.init(50, 50);
+      this.playerEntity.init(100, 100);
 		this.playerController = new PlayerController(this.playerEntity);
       this.playerEntity.controller = this.playerController;
 		this.entities.push(this.playerEntity);
 		this.controllers.push(this.playerController);
 		this.playerEntity.sprite.filters = [this.filters['PlayerGlow']];
 		this.playerEntity.sprite.tint = 0xff8888;
+		
+		//block a big square around player so they don't attack right away
+		for (var x = 1; x < 10; x++) {
+			for (var y = 1; y < 10; y++) {
+				this.pathing[x][y] = 1;
+			}
+		}
 
 		////////////////////////////////////////
 		// SPAWN ENEMIES
 		////////////////////////////////////////
       for (var i = 0; i < 6; i++) {
          var entity = new Entity(Utils.pickRandom(entityTypes));
-         entity.init(800, 50 + i*150);
+			point = this.getOpenSpace();
+         entity.init(point.x*64, point.y*64);
          entity.controller = new SimpleEnemyController(entity);
    		this.controllers.push(entity.controller);
          this.entities.push(entity);
@@ -140,9 +204,28 @@ BasicGame.Game.prototype = {
 		for (var i = this.entities.length-1; i >= 0; i--) {
 			for (var j = this.projectiles.length-1; j >= 0; j--) {
 				if (this.projectiles[j].sourceEntity == this.entities[i]) continue;
+				if (this.projectiles[j].sourceEntity != this.playerEntity && this.entities[i] != this.playerEntity) continue;
 
 				if (this.game.physics.arcade.collide(this.entities[i].sprite, this.projectiles[j].sprite)) {
 					this.onEntityProjectileCollision(this.entities[i], this.projectiles[j]);
+				}
+			}
+		}
+		
+		//entities with obstacles
+		for (var i = this.entities.length-1; i >= 0; i--) {
+			for (var j = this.obstacles.length-1; j >= 0; j--) {
+				if (this.game.physics.arcade.collide(this.entities[i].sprite, this.obstacles[j].sprite)) {
+					this.onEntityObstacleCollision(this.entities[i], this.obstacles[j]);
+				}
+			}
+		}
+		
+		//projectiles with obstacles
+		for (var i = this.projectiles.length-1; i >= 0; i--) {
+			for (var j = this.obstacles.length-1; j >= 0; j--) {
+				if (this.game.physics.arcade.collide(this.projectiles[i].sprite, this.obstacles[j].sprite)) {
+					this.onProjectileObstacleCollision(this.projectiles[i], this.obstacles[j]);
 				}
 			}
 		}
@@ -152,10 +235,11 @@ BasicGame.Game.prototype = {
       var projectile;
 		for (var i = this.projectiles.length-1; i >= 0; i--) {
 			projectile = this.projectiles[i];
-			projectile.update(this);
+			projectile.update();
 			if (projectile.remove) {
 				this.projectiles.splice(i,1);
 				projectile.sprite.destroy();
+				projectile.onRemove();
 			}
 		}
 
@@ -173,7 +257,15 @@ BasicGame.Game.prototype = {
 	},
 
 	onEntityProjectileCollision: function(entity, projectile) {
-      projectile.onCollide(entity);
+      projectile.onCollideEntity(entity);
+	},
+	
+	onEntityObstacleCollision: function(entity, obstacle) {
+		
+	},
+	
+	onProjectileObstacleCollision: function(projectile, obstacle) {
+		projectile.onCollideObstacle(obstacle);
 	},
 
 	addProjectile: function(projectile, x, y, facing, sourceEntity) {
@@ -233,6 +325,43 @@ BasicGame.Game.prototype = {
 			var tween = this.game.add.tween(filter.uniforms.innerStrength).to({value:0}, 1000, "Quart.easeOut");
 			tween.start();
 		}
+	},
+	
+	addObstacle: function(gridX, gridY) {
+		if (this.pathing[gridX][gridY] == 1) return;
+		var w = 64;
+		var obstacle = new Obstacle(gridX * w, gridY * w, 'blocker');
+		this.pathing[gridX][gridY] = 1;
+	},
+	
+	//this could go horribly wrong
+	getOpenSpace: function() {
+		var x, y;
+		do {
+			x = Math.floor(Math.random() * (this.pathing.length-2)) + 1;
+			y = Math.floor(Math.random() * (this.pathing[0].length-2)) + 1;
+		} while(this.pathing[x][y] == 1);
+		
+		return new Phaser.Point(x,y);
+	},
+	
+	timeSince: function(time) {
+		return this.currentTime - time;
+	},
+	
+	getEntitiesNearPoint: function(point, radius) {
+		var entities = [];
+		for (var i = 0; i < this.entities.length; i++) {
+			if (this.entities[i].sprite.position.distance(point) <= radius) entities.push(this.entities[i]);
+		}
+		return entities;
+	},
+	
+	doBombEffect: function(x, y) {
+		this.bombEmitter.x = x;
+		this.bombEmitter.y = y;
+		
+		this.bombEmitter.start(true, 500, 0, 30);
 	},
 
 	quitGame: function (pointer) {

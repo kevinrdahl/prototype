@@ -42,10 +42,12 @@ var Entity = Class({
 
 	   if (acceleration.getMagnitude() == 0) {
 	      var currentMagnitude = body.velocity.getMagnitude();
-	      body.velocity.setMagnitude(Math.max(0, currentMagnitude - this.acceleration));
+	      //body.velocity.setMagnitude(Math.max(0, currentMagnitude - this.acceleration));
+			this.sprite.body.drag.set(3000);
 
 	      this.setAnimation("idle");
 	   } else {
+			this.sprite.body.drag.set(0);
 	      Phaser.Point.add(body.velocity, acceleration, body.velocity);
 	      body.velocity.setMagnitude(Math.min(this.speed, body.velocity.getMagnitude()));
 
@@ -68,9 +70,8 @@ var Entity = Class({
 			if (ability) ability.update();
 		}
 
-		if (this.controller.useAbilities.primary) {
-			this.abilities.primary.activate();
-		}
+		if (this.controller.useAbilities.primary) this.abilities.primary.activate();
+		if (this.controller.useAbilities.secondary) this.abilities.secondary.activate();
 	},
 
    takeDamage: function(amount, source) {
@@ -78,6 +79,7 @@ var Entity = Class({
       this.healthBar.update();
 
       if (this.hp == 0) gameState.killEntity(this, source);
+		else this.controller.onTakeDamage(amount, source);
    },
 
 	setAnimation: function(animation, direction, force) {
@@ -125,5 +127,7 @@ var Entity = Class({
 				this.abilities[type] = new abilityType(this);
 			}
 		}
+		
+		if (this.healthBar) this.healthBar.update();
 	}
 });

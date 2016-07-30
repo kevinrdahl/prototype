@@ -54,7 +54,7 @@ Abilities.arrow = Class(Ability, {
 
 Abilities.fireKey = Class(Ability, {
 	constructor: function(entity) {
-		Abilities.arrow.$super.call(this, entity, 300);
+		Abilities.fireKey.$super.call(this, entity, 300);
 		this.aiAttackRange = 300;
 	},
 	
@@ -64,11 +64,38 @@ Abilities.fireKey = Class(Ability, {
 	}
 });
 
+Abilities.bomb = Class(Ability, {
+	constructor: function(entity) {
+		Abilities.bomb.$super.call(this, entity, 1000);
+	},
+	
+	doEffect: function() {
+		var projectile = new Projectiles.Bomb(500, {type:'bomb', radius:200, impact:3000, amount:6}, 1000, 500);
+		fireProjectileToFacing(this.entity, projectile, this.entity.controller.facing);
+	}
+});
+
+Abilities.quadArrow = Class(Ability, {
+	constructor: function(entity) {
+		Abilities.quadArrow.$super.call(this, entity, 2000);
+	},
+	
+	doEffect: function() {
+		var projectile;
+		var arc = Phaser.Math.degToRad(20);
+		for (var i = 0; i < 4; i++) {
+			projectile = new Projectiles.Arrow(1000, {type:'damage', amount:3}, 1000, 2000);
+			fireProjectileToFacing(this.entity, projectile, this.entity.controller.facing-arc + ((i+1)/4 * arc));
+		} 
+	}
+})
+
 function fireProjectileToFacing(entity, projectile, facing, spread) {
 	if (spread) facing += Utils.vary(spread);
 	var origin = new Phaser.Point(Math.abs(entity.sprite.width),0);
 	origin.rotate(0, 0, facing);
 	origin.add(entity.sprite.position.x, entity.sprite.position.y);
 	
-	gameState.addProjectile(projectile, origin.x, origin.y, facing, entity);
+	//gameState.addProjectile(projectile, origin.x, origin.y, facing, entity);
+	gameState.addProjectile(projectile, entity.sprite.position.x, entity.sprite.position.y, facing, entity);
 }

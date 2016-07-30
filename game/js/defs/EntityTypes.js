@@ -5,7 +5,7 @@ EntityTypes['notlink'] = {
 	animationSet:'up4_side4_down4',
 	abilities:{
 		primary:'boomerang',
-		secondary:'',
+		secondary:'bomb',
 		movement:''
 	},
 	speed:500,
@@ -18,7 +18,7 @@ EntityTypes['cloak'] = {
 	animationSet:'up4_side4_down4',
 	abilities:{
 		primary:'arrow',
-		secondary:'',
+		secondary:'quadArrow',
 		movement:''
 	},
 	speed:400,
@@ -31,12 +31,12 @@ EntityTypes['feather'] = {
 	animationSet:'up4_side4_down4',
 	abilities:{
 		primary:'fireKey',
-		secondary:'',
+		secondary:'bomb',
 		movement:''
 	},
 	speed:600,
 	acceleration:125,
-	hp:10
+	hp:13
 };
 
 entityTypes = [];

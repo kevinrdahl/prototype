@@ -30,13 +30,15 @@ var HealthBar = Class({
 			this.icons.push(icon);
 		}
 
-		var startX = (this.icons[0].width * maxValue) / -2;
+		var startX = (this.icons[0].width * Math.min(10, maxValue)) / -2;
 		var y = this.entity.sprite.height/2 + 5;
 
 		//TODO: rows
 		for (var i = 0; i < this.icons.length; i++) {
 			icon = this.icons[i];
-			icon.position.x = startX + icon.width*i;
+			if (i % 10 == 0 && i > 0) y += icon.height;
+			
+			icon.position.x = startX + icon.width*(i%10);
 			icon.position.y = y;
 
 			if (value > i) {

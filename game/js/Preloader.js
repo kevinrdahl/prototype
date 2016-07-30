@@ -41,10 +41,17 @@ BasicGame.Preloader.prototype = {
 		this.load.spritesheet("boomerang", "assets/sprites/boomerang.png", 16, 16, 4);
 		this.load.spritesheet("arrow", "assets/sprites/arrow.png", 16, 16, 1);
 		this.load.spritesheet("key", "assets/sprites/key.png", 16, 16, 1);
+		this.load.spritesheet("bomb", "assets/sprites/bomb.png", 16, 16, 8);
 		
 		//health bar
 		this.load.image('gem_green', 'assets/sprites/gem_green.png');
 		this.load.image('gem_grey', 'assets/sprites/gem_grey.png');
+		
+		//stuff
+		this.load.image('blocker', 'assets/sprites/blocker.png');
+		
+		//particles
+		this.load.image('gem_red', 'assets/sprites/gem_red.png');
 	},
 
 	create: function () {

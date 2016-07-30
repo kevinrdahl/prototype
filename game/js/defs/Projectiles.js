@@ -4,7 +4,7 @@ var Projectiles = {};
 // Projectile
 ////////////////////////////////////////
 var Projectile = Class({
-	constructor: function(spriteName, animationSetName, speed, effect, maxDistance, maxLifetime) {
+	constructor: function(spriteName, animationSetName, speed, effect, maxDistance, maxLifetime, bounce) {
 		this.spriteName = spriteName;
 		this.animationSetName = animationSetName;
 		this.speed = speed;
@@ -13,10 +13,15 @@ var Projectile = Class({
 		this.isDirectional = false;
 		this.sourceEntity = null;
 		this.maxDistance = maxDistance;
-		this.maxLifetime = maxLifetime;
+		this.maxLifetime = (typeof maxLifetime !== 'undefined') ? maxLifetime : 1000;
+		this.bounce = (typeof bounce !== 'undefined') ? bounce : 0.5;
+		
+		this.collides = true;
+		this.removeOnCollideObstacle = false;
+		this.removeOnCollideEntity = true;
+		this.bounces = 1;
 
 		this.startPoint = null;
-		this.startTime = gameState.currentTime;
 
 		this.remove = false;
 	},
@@ -33,6 +38,7 @@ var Projectile = Class({
 
 		gameState.physics.enable(this.sprite, Phaser.Physics.ARCADE);
 		this.sprite.body.setSize(10,10,3,3);
+		this.sprite.body.bounce.set(this.bounce);
 
 		var velocity = new Phaser.Point(this.speed,0);
 		velocity.rotate(0,0,direction);
@@ -41,6 +47,7 @@ var Projectile = Class({
 		this.sprite.body.velocity.set(velocity.x, velocity.y);
 
 		this.startPoint = new Phaser.Point(x,y);
+		this.startTime = gameState.currentTime;
 	},
 
 	update: function() {
@@ -49,12 +56,37 @@ var Projectile = Class({
 		}
 	},
 
-	onCollide: function(entity) {
+	onCollideEntity: function(entity) {
 		if (this.effect.type == "damage") {
 			entity.takeDamage(this.effect.amount, this.sourceEntity);
 		}
 
-		this.remove = true;
+		if (this.removeOnCollideEntity) this.remove = true;
+	},
+	
+	onCollideObstacle: function(obstacle) {
+		if (this.removeOnCollideObstacle) this.remove = true;
+		
+		if (this.bounces == 0) this.remove = true;
+		else this.bounces -= 1;
+	},
+	
+	onRemove: function() {
+		if (this.effect.type == "bomb") {
+			var entities = gameState.getEntitiesNearPoint(this.sprite.position, this.effect.radius);
+			var entity;
+			var velocityEffect = this.effect.impact;
+			var awayVector = new Phaser.Point(0,0);
+			for (var i = 0; i < entities.length; i++) {
+				entity = entities[i];
+				Phaser.Point.subtract(entity.sprite.position, this.sprite.position, awayVector);
+				awayVector.setMagnitude(velocityEffect);
+				entity.sprite.body.velocity.add(awayVector.x, awayVector.y);
+				entity.takeDamage(this.effect.amount, this.sourceEntity);
+			}
+			
+			gameState.doBombEffect(this.sprite.position.x, this.sprite.position.y);
+		}
 	}
 });
 
@@ -62,8 +94,8 @@ var Projectile = Class({
 // RotatedProjectile
 ////////////////////////////////////////
 RotatedProjectile = Class(Projectile, {
-	constructor: function(spriteName, speed, effect, maxDistance, maxLifetime) {
-		RotatedProjectile.$super.call(this, spriteName, 'none', speed, effect, maxDistance, maxLifetime);
+	constructor: function(spriteName, speed, effect, maxDistance, maxLifetime, bounce) {
+		RotatedProjectile.$super.call(this, spriteName, 'none', speed, effect, maxDistance, maxLifetime, bounce);
 		//this.rounding = 1;
 	},
 	
@@ -83,7 +115,22 @@ RotatedProjectile = Class(Projectile, {
 		var facing = zero.angle(this.sprite.body.velocity);
 		this.sprite.rotation = facing;
 	}
-})
+});
+
+////////////////////////////////////////
+// DragProjectile (projectile with drag)
+////////////////////////////////////////
+DragProjectile = Class(Projectile, {
+	constructor: function(spriteName, animationSetName, speed, effect, maxDistance, maxLifetime, bounce, drag) {
+		DragProjectile.$super.call(this, spriteName, animationSetName, speed, effect, maxDistance, maxLifetime, bounce);
+		this.drag = drag;
+	},
+	
+	init: function(x, y, direction, initialVelocity) {
+		DragProjectile.$superp.init.call(this, x, y, direction, initialVelocity);
+		this.sprite.body.drag.set(this.drag);
+	}
+});
 
 ////////////////////////////////////////
 // Boomerang
@@ -91,6 +138,7 @@ RotatedProjectile = Class(Projectile, {
 Projectiles.Boomerang = Class(Projectile, {
 	constructor: function(speed, effect, maxDistance, maxLifetime) {
 		Projectiles.Boomerang.$super.call(this, 'boomerang', 'rot4', speed, effect, maxDistance, maxLifetime);
+		this.bounces = 1000; //FOREVER
 	}
 });
 
@@ -99,7 +147,7 @@ Projectiles.Boomerang = Class(Projectile, {
 ////////////////////////////////////////
 Projectiles.Arrow = Class(RotatedProjectile, {
 	constructor: function(speed, effect, maxDistance, maxLifetime) {
-		Projectiles.Arrow.$super.call(this, 'arrow', speed, effect, maxDistance. maxLifetime);
+		Projectiles.Arrow.$super.call(this, 'arrow', speed, effect, maxDistance, maxLifetime);
 	}
 })
 
@@ -108,6 +156,16 @@ Projectiles.Arrow = Class(RotatedProjectile, {
 ////////////////////////////////////////
 Projectiles.Key = Class(RotatedProjectile, {
 	constructor: function(speed, effect, maxDistance, maxLifetime) {
-		Projectiles.Arrow.$super.call(this, 'key', speed, effect, maxDistance. maxLifetime);
+		Projectiles.Key.$super.call(this, 'key', speed, effect, maxDistance, maxLifetime);
+	}
+})
+
+////////////////////////////////////////
+// BOMB
+////////////////////////////////////////
+Projectiles.Bomb = Class(DragProjectile, {
+	constructor: function(speed, effect, maxLifetime, drag) {
+		Projectiles.Bomb.$super.call(this, 'bomb', 'idle8', speed, effect, 99999, maxLifetime, 0.5, drag);
+		this.removeOnCollideEntity = false;
 	}
 })

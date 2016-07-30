@@ -33,5 +33,9 @@ var Controller  = Class({
 	moveAwayFromPoint: function(point) {
 		Phaser.Point.subtract(this.entity.sprite.position, point, this.direction);
 		this.direction.setMagnitude(1);
+	},
+	
+	onTakeDamage: function(amount, sourceEntity) {
+
 	}
 });
