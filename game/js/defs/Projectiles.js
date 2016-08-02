@@ -15,8 +15,9 @@ var Projectile = Class({
 		this.maxDistance = maxDistance;
 		this.maxLifetime = (typeof maxLifetime !== 'undefined') ? maxLifetime : 1000;
 		this.bounce = (typeof bounce !== 'undefined') ? bounce : 0.5;
-		
-		this.collides = true;
+
+		this.collidesWithEntities = true;
+		this.collidesWithObstacles = true;
 		this.removeOnCollideObstacle = false;
 		this.removeOnCollideEntity = true;
 		this.bounces = 1;
@@ -63,14 +64,14 @@ var Projectile = Class({
 
 		if (this.removeOnCollideEntity) this.remove = true;
 	},
-	
+
 	onCollideObstacle: function(obstacle) {
 		if (this.removeOnCollideObstacle) this.remove = true;
-		
+
 		if (this.bounces == 0) this.remove = true;
 		else this.bounces -= 1;
 	},
-	
+
 	onRemove: function() {
 		if (this.effect.type == "bomb") {
 			var entities = gameState.getEntitiesNearPoint(this.sprite.position, this.effect.radius);
@@ -84,7 +85,7 @@ var Projectile = Class({
 				entity.sprite.body.velocity.add(awayVector.x, awayVector.y);
 				entity.takeDamage(this.effect.amount, this.sourceEntity);
 			}
-			
+
 			gameState.doBombEffect(this.sprite.position.x, this.sprite.position.y);
 		}
 	}
@@ -98,17 +99,17 @@ RotatedProjectile = Class(Projectile, {
 		RotatedProjectile.$super.call(this, spriteName, 'none', speed, effect, maxDistance, maxLifetime, bounce);
 		//this.rounding = 1;
 	},
-	
+
 	init: function(x, y, direction, initialVelocity) {
 		RotatedProjectile.$superp.init.call(this, x, y, direction, initialVelocity);
 		this.rotate();
 	},
-	
+
 	update: function() {
 		RotatedProjectile.$superp.update.call(this);
 		this.rotate();
 	},
-	
+
 	rotate: function() {
 		//face the right way!
 		var zero = new Phaser.Point(0,0);
@@ -125,7 +126,7 @@ DragProjectile = Class(Projectile, {
 		DragProjectile.$super.call(this, spriteName, animationSetName, speed, effect, maxDistance, maxLifetime, bounce);
 		this.drag = drag;
 	},
-	
+
 	init: function(x, y, direction, initialVelocity) {
 		DragProjectile.$superp.init.call(this, x, y, direction, initialVelocity);
 		this.sprite.body.drag.set(this.drag);
